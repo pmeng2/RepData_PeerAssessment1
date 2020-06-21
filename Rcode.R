@@ -47,3 +47,30 @@ hist(newdailystep, breaks = 20, xlab = "Total number of steps taken daily",
      ylab = "Counts")
 mean(newdailystep)
 median(newdailystep)
+
+##create a new variable
+tapply(activity2$steps, activity2$interval, mean)
+date1 <- as.Date(activity1$date)
+weekday <- weekdays(date1)
+weekdays <- weekday
+for (i in 1:17568) {
+        if (weekdays[i] == "Saturday" | weekdays[i] == "Sunday") {
+                weekdays[i] <- "weekend"
+        } else {
+                weekdays[i] <- "weekday"
+        }
+}
+activity2 <- cbind(activity1, weekdays)
+
+##Subset the weekday and weekend data, get the mean interval
+weekenddata <- subset(activity2, weekdays == "weekend")
+weekdaydata <- subset(activity2, weekdays == "weekday")
+weekdaymean <- tapply(weekdaydata$steps, weekdaydata$interval, mean)
+weekendmean <- tapply(weekenddata$steps, weekenddata$interval, mean)
+par(mfrow = c(2,1), mar = c(4,4.5,2,2))
+plot(interval, weekdaymean, type = "l", ylab = "Number of steps", 
+     xlab = "", main = "Weekday")
+plot(interval, weekdendmean, type = "l", ylab = "Number of steps", 
+     xlab = "Interval", main = "Weekend")
+
+
