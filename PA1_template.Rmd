@@ -7,19 +7,86 @@ output:
 
 
 ## Loading and preprocessing the data
-
-
+```{r load and process the data}
+setwd("~/R.Studio/Reproducible_research/RepData_PeerAssessment1")
+unzip("activity.zip")
+activity <- read.csv("activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
-
-
+```{r daily step}
+dailysteps <- tapply(activity$steps, activity$date, sum)
+hist(dailysteps, breaks = 20, xlab = "Daily steps", 
+     main = "Total number of steps taken each day")
+mean(dailysteps, na.rm = T)
+median(dailysteps, na.rm = T)
+```
 
 ## What is the average daily activity pattern?
+```{r Average daily pattern}
+good <- complete.cases(activity)
+gooddata <- activity[good, ]
+meansteps <- tapply(gooddata$steps, gooddata$interval, mean)
+interval <- as.numeric(names(meansteps))
+plot(x = interval, y = meansteps, type = "l", xlab = "5-minute interval", 
+     ylab = "Average number of steps taken")
+```
 
-
-
+```{r maximum meansteps}
+which.max(meansteps)
+meansteps[104]
+```
 ## Imputing missing values
+```{r total number of imcomplete case}
+bad <- !complete.cases(activity)
+sum(bad)
+```
 
+```{r Imput the missing data}
+meandata <- as.numeric(meansteps)
+filldata <- cbind(interval, meandata)
+colnames(filldata) <- c("interval","steps")
+activity1 <- activity
+for (i in 1: 17568) {
+        if (is.na(activity[i,1])){
+                activity1[i,1] <- filldata[interval == activity1[i, 3], 2]
+        }
+}
+```
 
-
+```{r histogram of new data}
+newdailystep <- tapply(activity1$steps, activity1$date, sum)
+hist(newdailystep, breaks = 20, xlab = "Total number of steps taken daily", 
+     ylab = "Counts")
+mean(newdailystep)
+median(newdailystep)
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r create new variable}
+date1 <- as.Date(activity1$date)
+weekday <- weekdays(date1)
+weekdays <- weekday
+for (i in 1:17568) {
+        if (weekdays[i] == "Saturday" | weekdays[i] == "Sunday") {
+                weekdays[i] <- "weekend"
+        } else {
+                weekdays[i] <- "weekday"
+        }
+}
+activity2 <- cbind(activity1, weekdays)
+```
+
+```{r subset the data}
+weekenddata <- subset(activity2, weekdays == "weekend")
+weekdaydata <- subset(activity2, weekdays == "weekday")
+weekdaymean <- tapply(weekdaydata$steps, weekdaydata$interval, mean)
+weekendmean <- tapply(weekenddata$steps, weekenddata$interval, mean)
+```
+
+```{r making the plot}
+par(mfrow = c(2,1), mar = c(4,4.5,2,2))
+plot(interval, weekdaymean, type = "l", ylab = "Number of steps", 
+     xlab = "", main = "Weekday")
+plot(interval, weekendmean, type = "l", ylab = "Number of steps", 
+     xlab = "Interval", main = "Weekend")
+```
